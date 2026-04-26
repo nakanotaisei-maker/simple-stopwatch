@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ランダムポケモン図鑑</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 32px;
+      text-align: center;
+      background: linear-gradient(90deg, #f7971e, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+    }
+
+    #card-wrapper {
+      perspective: 1000px;
+      width: 340px;
+    }
+
+    #card {
+      width: 340px;
+      min-height: 480px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 28px 28px;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: var(--type-gradient, linear-gradient(135deg, rgba(255,255,255,0.05), transparent));
+      pointer-events: none;
+    }
+
+    #card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+    }
+
+    #pokemon-number {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      align-self: flex-start;
+      margin-bottom: 4px;
+    }
+
+    #pokemon-name {
+      font-size: 2rem;
+      font-weight: 800;
+      text-transform: capitalize;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+      align-self: flex-start;
+    }
+
+    #type-badges {
+      display: flex;
+      gap: 8px;
+      align-self: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .type-badge {
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    #pokemon-image-wrap {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      margin: 8px 0 20px;
+    }
+
+    #pokemon-image-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 20px;
+      background: radial-gradient(ellipse, rgba(0,0,0,0.4), transparent 70%);
+    }
+
+    #pokemon-img {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+      transition: opacity 0.3s ease, transform 0.4s ease;
+    }
+
+    #pokemon-img.loading {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+
+    #pokemon-img.loaded {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    #stats-section {
+      width: 100%;
+    }
+
+    .stats-title {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+
+    .stat-name {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+      width: 60px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .stat-val {
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 28px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .stat-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .stat-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #roll-btn {
+      margin-top: 32px;
+      padding: 16px 48px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f7971e, #ffd200);
+      color: #1a1a2e;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(247, 151, 30, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      user-select: none;
+    }
+
+    #roll-btn:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 12px 40px rgba(247, 151, 30, 0.55);
+    }
+
+    #roll-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    #roll-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 24px;
+      background: rgba(15, 20, 40, 0.7);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #loading-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: #ffd200;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #error-msg {
+      color: #ff6b6b;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      min-height: 20px;
+      text-align: center;
+    }
+
+    /* Type colors */
+    .type-normal    { background: #9da0aa; color: #fff; }
+    .type-fire      { background: #ff6b35; color: #fff; }
+    .type-water     { background: #3d9be9; color: #fff; }
+    .type-electric  { background: #f7d02c; color: #1a1a2e; }
+    .type-grass     { background: #5fbc51; color: #fff; }
+    .type-ice       { background: #74cec0; color: #fff; }
+    .type-fighting  { background: #ce4069; color: #fff; }
+    .type-poison    { background: #ab6ac8; color: #fff; }
+    .type-ground    { background: #d97845; color: #fff; }
+    .type-flying    { background: #89aae3; color: #fff; }
+    .type-psychic   { background: #f95587; color: #fff; }
+    .type-bug       { background: #90c12c; color: #fff; }
+    .type-rock      { background: #c9bb8a; color: #1a1a2e; }
+    .type-ghost     { background: #5269ac; color: #fff; }
+    .type-dragon    { background: #0b6dc3; color: #fff; }
+    .type-dark      { background: #5a5366; color: #fff; }
+    .type-steel     { background: #5a8ea2; color: #fff; }
+    .type-fairy     { background: #ec8fe6; color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>⚡ ランダムポケモン図鑑</h1>
+
+  <div id="card-wrapper">
+    <div id="card">
+      <div id="loading-overlay"><div class="spinner"></div></div>
+
+      <div id="pokemon-number">#???</div>
+      <div id="pokemon-name">???</div>
+      <div id="type-badges"></div>
+
+      <div id="pokemon-image-wrap">
+        <img id="pokemon-img" src="" alt="pokemon" class="loading" />
+      </div>
+
+      <div id="info-grid">
+        <div class="info-box">
+          <div class="info-label">たかさ</div>
+          <div class="info-value" id="height-val">-</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">おもさ</div>
+          <div class="info-value" id="weight-val">-</div>
+        </div>
+      </div>
+
+      <div id="stats-section">
+        <div class="stats-title">基本ステータス</div>
+        <div id="stat-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <button id="roll-btn" onclick="fetchRandomPokemon()">
+    🎲 ランダムに引く
+  </button>
+  <div id="error-msg"></div>
+
+  <script>
+    const TOTAL_POKEMON = 1025;
+
+    const TYPE_GRADIENTS = {
+      normal:   'linear-gradient(135deg, rgba(157,160,170,0.15), transparent)',
+      fire:     'linear-gradient(135deg, rgba(255,107,53,0.2), transparent)',
+      water:    'linear-gradient(135deg, rgba(61,155,233,0.2), transparent)',
+      electric: 'linear-gradient(135deg, rgba(247,208,44,0.2), transparent)',
+      grass:    'linear-gradient(135deg, rgba(95,188,81,0.2), transparent)',
+      ice:      'linear-gradient(135deg, rgba(116,206,192,0.2), transparent)',
+      fighting: 'linear-gradient(135deg, rgba(206,64,105,0.2), transparent)',
+      poison:   'linear-gradient(135deg, rgba(171,106,200,0.2), transparent)',
+      ground:   'linear-gradient(135deg, rgba(217,120,69,0.2), transparent)',
+      flying:   'linear-gradient(135deg, rgba(137,170,227,0.2), transparent)',
+      psychic:  'linear-gradient(135deg, rgba(249,85,135,0.2), transparent)',
+      bug:      'linear-gradient(135deg, rgba(144,193,44,0.2), transparent)',
+      rock:     'linear-gradient(135deg, rgba(201,187,138,0.2), transparent)',
+      ghost:    'linear-gradient(135deg, rgba(82,105,172,0.2), transparent)',
+      dragon:   'linear-gradient(135deg, rgba(11,109,195,0.25), transparent)',
+      dark:     'linear-gradient(135deg, rgba(90,83,102,0.2), transparent)',
+      steel:    'linear-gradient(135deg, rgba(90,142,162,0.2), transparent)',
+      fairy:    'linear-gradient(135deg, rgba(236,143,230,0.2), transparent)',
+    };
+
+    const STAT_LABELS = {
+      hp:              'HP',
+      attack:          'こうげき',
+      defense:         'ぼうぎょ',
+      'special-attack': 'とくこう',
+      'special-defense':'とくぼう',
+      speed:           'すばやさ',
+    };
+
+    const STAT_COLORS = {
+      hp:              '#ff5959',
+      attack:          '#f5ac78',
+      defense:         '#fae078',
+      'special-attack': '#9db7f5',
+      'special-defense':'a7db8d',
+      speed:           '#fa92b2',
+    };
+
+    function setLoading(on) {
+      document.getElementById('loading-overlay').classList.toggle('visible', on);
+      document.getElementById('roll-btn').disabled = on;
+    }
+
+    async function fetchRandomPokemon() {
+      const id = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
+      setLoading(true);
+      document.getElementById('error-msg').textContent = '';
+
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderPokemon(data);
+      } catch (e) {
+        document.getElementById('error-msg').textContent = 'データの取得に失敗しました。もう一度お試しください。';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderPokemon(data) {
+      // Number & name
+      document.getElementById('pokemon-number').textContent = `#${String(data.id).padStart(4, '0')}`;
+      document.getElementById('pokemon-name').textContent = data.name;
+
+      // Types
+      const typeBadges = document.getElementById('type-badges');
+      typeBadges.innerHTML = '';
+      data.types.forEach(t => {
+        const span = document.createElement('span');
+        span.className = `type-badge type-${t.type.name}`;
+        span.textContent = t.type.name;
+        typeBadges.appendChild(span);
+      });
+
+      // Card gradient based on primary type
+      const primaryType = data.types[0].type.name;
+      document.getElementById('card').style.setProperty(
+        '--type-gradient',
+        TYPE_GRADIENTS[primaryType] || TYPE_GRADIENTS.normal
+      );
+
+      // Image
+      const img = document.getElementById('pokemon-img');
+      img.className = 'loading';
+      const src =
+        data.sprites?.other?.['official-artwork']?.front_default ||
+        data.sprites?.front_default ||
+        '';
+      img.src = src;
+      img.onload = () => { img.className = 'loaded'; };
+      img.onerror = () => { img.className = 'loaded'; };
+
+      // Height / Weight
+      document.getElementById('height-val').textContent =
+        `${(data.height / 10).toFixed(1)} m`;
+      document.getElementById('weight-val').textContent =
+        `${(data.weight / 10).toFixed(1)} kg`;
+
+      // Stats
+      const statRows = document.getElementById('stat-rows');
+      statRows.innerHTML = '';
+      data.stats.forEach(s => {
+        const name = s.stat.name;
+        const val = s.base_stat;
+        const pct = Math.min((val / 255) * 100, 100);
+        const color = STAT_COLORS[name] || '#fff';
+        const label = STAT_LABELS[name] || name;
+
+        const row = document.createElement('div');
+        row.className = 'stat-row';
+        row.innerHTML = `
+          <span class="stat-name">${label}</span>
+          <span class="stat-val">${val}</span>
+          <div class="stat-bar-bg">
+            <div class="stat-bar" style="width:0%; background:${color};"></div>
+          </div>
+        `;
+        statRows.appendChild(row);
+        // Animate bar
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            row.querySelector('.stat-bar').style.width = `${pct}%`;
+          });
+        });
+      });
+    }
+
+    // 初回ロード時に1匹表示
+    fetchRandomPokemon();
+  </script>
+</body>
+</html>
