@@ -4,24 +4,53 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ストップウォッチ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">ストップウォッチ</h1>
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
 
-    <div class="display">
-      <span id="minutes">00</span>
-      <span class="colon">:</span>
-      <span id="seconds">00</span>
-      <span class="dot">.</span>
-      <span id="centiseconds">00</span>
+  <div class="container">
+    <h1 class="title">STOPWATCH</h1>
+
+    <div class="ring-wrapper">
+      <svg class="ring-svg" viewBox="0 0 300 300">
+        <circle class="ring-track" cx="150" cy="150" r="130" />
+        <circle class="ring-progress" id="ring-progress" cx="150" cy="150" r="130" />
+      </svg>
+
+      <div class="display">
+        <div class="time-main">
+          <span id="minutes">00</span>
+          <span class="colon blink">:</span>
+          <span id="seconds">00</span>
+        </div>
+        <div class="time-cs">
+          <span class="cs-dot">.</span><span id="centiseconds">00</span>
+        </div>
+        <div class="status-label" id="status-label">READY</div>
+      </div>
     </div>
 
     <div class="controls">
-      <button id="start-btn" class="btn btn-start">スタート</button>
-      <button id="lap-btn" class="btn btn-lap" disabled>ラップ</button>
-      <button id="reset-btn" class="btn btn-reset" disabled>リセット</button>
+      <button id="reset-btn" class="btn btn-reset" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>RESET</span>
+      </button>
+      <button id="start-btn" class="btn btn-start">
+        <div class="btn-glow"></div>
+        <svg id="start-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        <span id="start-label">START</span>
+      </button>
+      <button id="lap-btn" class="btn btn-lap" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <span>LAP</span>
+      </button>
     </div>
 
     <div class="lap-section" id="lap-section">
